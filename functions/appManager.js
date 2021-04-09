@@ -1,4 +1,3 @@
-const db = require("./database.js");
 const axios = require('axios');
 const cheerio = require('cheerio');
 const https = require("https");
@@ -173,9 +172,11 @@ var request = https.get(url, function (res) {
 
 class App {
     #_events = {};
+    #_versions = [];
 
     constructor() {
         this.#_events = {};
+        this.#_versions = [];
       }
     
       /**
@@ -204,13 +205,15 @@ class App {
 
         if (!this.#_events[name]) this.#_events[name] = [];
 
+
     
+     
         this.#_events[name].push(listener);
 
 
 
         try{
-            const emit = (name, data) => {
+           const emit = (name, data) => {
                 if (!this.#_events[name]) return;
             
                 const fireCallbacks = (callback) => {
@@ -221,15 +224,33 @@ class App {
               };
             
 
-               function start(){
+              const start = () =>{
                 var url = `https://play.google.com/store/apps/details?id=${name}&hl=en_us`;
-
+                
+          
+              
                 getversion(url, name, options['displayErrors'], version => {
                     if(version){
-                        if(db.appExits(name) === false){
-                            db.addApp(name, version);
+                      let lver;
+                      
+                                     
+           
+         
+                      loop1:
+                      for(let vrs of this.#_versions)
+                      if(vrs.name === name){
+                      lver = vrs.version;
+                      break loop1;
+                      }
+                      
+                                      
+       
+               
+                      
+                        if(!lver){
+                            this.#_versions.push({name: name, version: version});
                         }else{
-                        const lver = db.getApp(name);
+                     
 
                         if(options['repeat']){
                             if(!options['repeat'].length && typeof options['repeat'] !== 'boolean')
@@ -237,7 +258,12 @@ class App {
 
                         if(options['repeat'] === true){
                         if(ltVersion(lver, version)){
-                    db.addApp(name, version);
+                  
+                    for(let vrs2 in this.#_versions)
+                    if(this.#_versions[vrs2].name === name){
+                      this.#_versions[vrs2].version = version;
+                    }
+
 
                     emit(name, {appId: name, version: version});
                         }else{
@@ -245,15 +271,24 @@ class App {
                        }
                         }else{
                             if(ltVersion(lver, version)){
-                        db.addApp(name, version);
+                  
+                    for(let vrs2 in this.#_versions)
+                    if(this.#_versions[vrs2].name === name){
+                      this.#_versions[vrs2].version = version;
+                    }
     
                         emit(name, {appId: name, version: version});
                             }
                         }
                     }else{
                         if(ltVersion(lver, version)){
-                    db.addApp(name, version);
-
+                  
+                  for(let vrs2 in this.#_versions)
+                    if(this.#_versions[vrs2].name === name){
+                      this.#_versions[vrs2].version = version;
+                    }
+                    
+                    
                     emit(name, {appId: name, version: version});
                         }
                     }
@@ -277,7 +312,7 @@ class App {
 
             if(options['ms']){
                 if(options['ms'] && typeof options['ms'] === 'number'){
-                    if(options['ms'] >= 100){
+                    if(options['ms'] >= 500){
             setInterval(()=>{
                 if(_canCheck === true){
                 start();
@@ -285,7 +320,7 @@ class App {
                 }
             }, options['ms']);
         }else{
-            throw new Error(`The miliseconds cannot be less than 100.`);
+            throw new Error(`The miliseconds cannot be less than 500.`);
         }
         }else{
             throw new Error(`the ms property cannot be empty and the type must be numeric.`);
@@ -296,7 +331,7 @@ class App {
                     start();
                    // _canCheck = false;
                     }
-                }, 100);
+                }, 500);
             }
 
         }catch(err){console.log(err)}
