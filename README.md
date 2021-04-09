@@ -38,7 +38,7 @@ const pss = require('play-store-system');
 
 const app = new pss();
 
-app.on('com.mojang.minecraftpe', {startMessage: true, repeat: true, ms: 100, displayErrors: false}, info => {
+app.on('com.mojang.minecraftpe', {startMessage: true, repeat: true, ms: 500, displayErrors: false}, info => {
   console.log(`${info.version}`);
 });
 ```
